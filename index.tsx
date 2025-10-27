@@ -184,7 +184,7 @@ const Chain: React.FC = () => {
             });
         });
 
-        Composites.chain(chain, isVertical ? 0 : 0.5, isVertical ? 0.5 : 0, isVertical ? 0 : -0.5, isVertical ? -0.5 : 0, { stiffness: 0.8, length: 1, render: { type: 'line', strokeStyle: '#BFDBFE' } });
+        Composites.chain(chain, isVertical ? 0 : 0.5, isVertical ? 0.5 : 0, isVertical ? 0 : -0.5, isVertical ? -0.5 : 0, { stiffness: 1.0, length: 1, render: { type: 'line', strokeStyle: '#BFDBFE' } });
         
         return chain;
     };
