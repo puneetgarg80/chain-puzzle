@@ -27,7 +27,7 @@
 </head>
   <body>
     <div id="root"></div>
-    <!-- Change script type to "text/babel" to enable transpilation -->
-    <script type="text/babel" data-type="module" src="index.tsx"></script>
+    <!-- Add data-presets to tell Babel how to transpile .tsx files -->
+    <script type="text/babel" data-presets="react,typescript" data-type="module" src="index.tsx"></script>
   </body>
 </html>
