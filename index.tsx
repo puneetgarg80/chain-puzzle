@@ -98,6 +98,7 @@ const Chain: React.FC = () => {
       newTargetParts.push(...partsToTransfer);              // Add source's parts
 
       // 3. Apply the new parts to the target body
+      MatterJS.Body.setParts(compositeB, [compositeB]);
       MatterJS.Body.setParts(compositeA, newTargetParts);
 
       // 4. Remove the now-empty composite B from the world and our ref array
