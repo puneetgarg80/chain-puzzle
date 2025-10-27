@@ -197,16 +197,16 @@ const Chain: React.FC = () => {
     const linkCount = 3;
     const linkSizeHorizontal = { w: 50, h: 20 };
     const linkSizeVertical = { w: 20, h: 50 };
-    const gap = 10;
+    const gap = 0;
 
     const horizontalChainLength = linkCount * linkSizeHorizontal.w + (linkCount - 1) * gap;
     const verticalChainLength = linkCount * linkSizeVertical.h + (linkCount - 1) * gap;
-    const rectWidth = horizontalChainLength + 20;
-    const rectHeight = verticalChainLength + 20;
+    const rectWidth = horizontalChainLength + 50;
+    const rectHeight = verticalChainLength + 50;
 
     const topChain = createChain(centerX - (horizontalChainLength / 2), centerY - (rectHeight / 2), linkCount, false);
     const bottomChain = createChain(centerX - (horizontalChainLength / 2), centerY + (rectHeight / 2), linkCount, false);
-    const leftChain = createChain(centerX - (rectWidth / 2) - linkSizeVertical.w, centerY - (verticalChainLength / 2), linkCount, true);
+    const leftChain = createChain(centerX - (rectWidth / 2), centerY - (verticalChainLength / 2), linkCount, true);
     const rightChain = createChain(centerX + (rectWidth / 2), centerY - (verticalChainLength / 2), linkCount, true);
 
     const allChains = [topChain, bottomChain, leftChain, rightChain];
