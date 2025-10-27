@@ -34,20 +34,35 @@ const Chain: React.FC = () => {
 
     for (const pair of pairs) {
       const { bodyA, bodyB } = pair;
-      console.log(`Checking pair: bodyA (id: ${bodyA.id}, parent: ${bodyA.parent.id}), bodyB (id: ${bodyB.id}, parent: ${bodyB.parent.id})`);
+      console.log(`Checking pair: bodyA (id: ${bodyA.id}), bodyB (id: ${bodyB.id})`);
 
-      // 1. Check if both are chain links from different parent composites
-      if (bodyA.label !== 'chainLink' || bodyB.label !== 'chainLink' || bodyA.parent === bodyB.parent) {
-        if (bodyA.parent === bodyB.parent) {
-            console.log('-> Skipping: Bodies belong to the same chain.');
-        } else {
-            console.log('-> Skipping: One or both bodies are not a "chainLink".');
-        }
-        continue;
+      // 1. Check if both bodies are labeled as chain links.
+      if (bodyA.label !== 'chainLink' || bodyB.label !== 'chainLink') {
+          console.log('-> Skipping: One or both bodies are not a "chainLink".');
+          continue;
+      }
+
+      // 2. Find the parent composite for each body by searching through our tracked chains.
+      // This is necessary because body.parent does not point to the composite container.
+      const findParentComposite = (body: Matter.Body) => 
+          chainsRef.current.find(c => Composite.allBodies(c).some(b => b.id === body.id));
+
+      const compositeA = findParentComposite(bodyA);
+      const compositeB = findParentComposite(bodyB);
+
+      // 3. Validate that composites were found and are different.
+      if (!compositeA || !compositeB) {
+          console.log('-> Skipping: Could not find a parent composite for one or both bodies.');
+          continue;
       }
       
-      const compositeA = bodyA.parent as unknown as Matter.Composite;
-      const compositeB = bodyB.parent as unknown as Matter.Composite;
+      console.log(`  - Body A belongs to composite ${compositeA.id}`);
+      console.log(`  - Body B belongs to composite ${compositeB.id}`);
+
+      if (compositeA.id === compositeB.id) {
+          console.log('-> Skipping: Bodies belong to the same chain.');
+          continue;
+      }
 
       // This can happen if one composite was just merged in the same tick
       if (!compositeA.bodies || !compositeB.bodies) {
@@ -55,7 +70,7 @@ const Chain: React.FC = () => {
         continue;
       }
 
-      // 2. Check if they are "end links" (have at most one existing constraint)
+      // 4. Check if they are "end links" (have at most one existing constraint)
       const allConstraints = Composite.allConstraints(world);
       const bodyAConstraints = allConstraints.filter(c => c.bodyA === bodyA || c.bodyB === bodyA);
       const bodyBConstraints = allConstraints.filter(c => c.bodyA === bodyB || c.bodyB === bodyB);
@@ -72,7 +87,7 @@ const Chain: React.FC = () => {
       
       console.log('%c✅ Conditions met! Creating new constraint and merging chains.', 'color: #6EE7B7; font-weight: bold;');
 
-      // 3. Create a new constraint to join them
+      // 5. Create a new constraint to join them
       const newConstraint = Constraint.create({
         bodyA,
         bodyB,
@@ -86,7 +101,7 @@ const Chain: React.FC = () => {
       });
       World.add(world, newConstraint);
 
-      // 4. Merge the composites to prevent re-joining attempts between the same two chains
+      // 6. Merge the composites to prevent re-joining attempts between the same two chains
       console.log(`Merging composite ${compositeB.id} into ${compositeA.id}`);
       const bodiesToMove = [...compositeB.bodies];
       bodiesToMove.forEach(body => {
@@ -100,7 +115,7 @@ const Chain: React.FC = () => {
         Composite.add(compositeA, constraint);
       });
 
-      // 5. Remove the now-empty composite B from the world and our ref array
+      // 7. Remove the now-empty composite B from the world and our ref array
       World.remove(world, compositeB);
       const oldChainCount = chainsRef.current.length;
       chainsRef.current = chainsRef.current.filter(c => c.id !== compositeB.id);
