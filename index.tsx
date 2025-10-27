@@ -72,10 +72,10 @@ const Chain: React.FC = () => {
 
       // 4. Check if they are "end links" (have at most one existing constraint)
       const allConstraints = Composite.allConstraints(world);
-      const bodyAConstraints = allConstraints.filter(c => c.bodyA === bodyA || c.bodyB === bodyA);
-      const bodyBConstraints = allConstraints.filter(c => c.bodyA === bodyB || c.bodyB === bodyB);
-      console.log(`  - Body A (id: ${bodyA.id}) has ${bodyAConstraints.length} constraints.`);
-      console.log(`  - Body B (id: ${bodyB.id}) has ${bodyBConstraints.length} constraints.`);
+      const bodyAConstraints = allConstraints.filter(c => (c.bodyA === bodyA || c.bodyB === bodyA) && c.label !== 'Mouse Constraint');
+      const bodyBConstraints = allConstraints.filter(c => (c.bodyA === bodyB || c.bodyB === bodyB) && c.label !== 'Mouse Constraint');
+      console.log(`  - Body A (id: ${bodyA.id}) has ${bodyAConstraints.length} chain constraints.`);
+      console.log(`  - Body B (id: ${bodyB.id}) has ${bodyBConstraints.length} chain constraints.`);
 
 
       // A link in the middle of a chain has 2 constraints. An end link has 1.
