@@ -100,6 +100,7 @@ const Chain: React.FC = () => {
       // 3. Apply the new parts to the target body
       MatterJS.Body.setParts(compositeB, [compositeB]);
       MatterJS.Body.setParts(compositeA, newTargetParts);
+      MatterJS.Body.setStatic(compositeA, false);
 
       // 4. Remove the now-empty composite B from the world and our ref array
       World.remove(world, compositeB);
