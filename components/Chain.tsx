@@ -1,11 +1,12 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+// FIX: Import Matter.js types to resolve "Cannot find namespace 'Matter'" errors.
+import type Matter from 'matter-js';
 
 // To satisfy TypeScript since Matter is loaded from CDN
 const Matter = window.Matter;
 
 export const Chain: React.FC = () => {
   const sceneRef = useRef<HTMLDivElement>(null);
-  // FIX: Initialize useRef with null for mutable refs and update types to allow null.
   const engineRef = useRef<Matter.Engine | null>(null);
   const runnerRef = useRef<Matter.Runner | null>(null);
   const renderRef = useRef<Matter.Render | null>(null);
@@ -29,9 +30,7 @@ export const Chain: React.FC = () => {
         continue;
       }
       
-      // FIX: Cast to unknown first to handle unsafe conversion from Body to Composite.
       const compositeA = bodyA.parent as unknown as Matter.Composite;
-      // FIX: Cast to unknown first to handle unsafe conversion from Body to Composite.
       const compositeB = bodyB.parent as unknown as Matter.Composite;
 
       // This can happen if one composite was just merged in the same tick
@@ -166,18 +165,6 @@ export const Chain: React.FC = () => {
     const bottomChain = createChain(centerX - (horizontalChainLength / 2), centerY + (rectHeight / 2), linkCount, 1, gap, gap, false);
     const leftChain = createChain(centerX - (rectWidth / 2) - linkSizeVertical.w, centerY - (verticalChainLength / 2), 1, linkCount, gap, gap, true);
     const rightChain = createChain(centerX + (rectWidth / 2), centerY - (verticalChainLength / 2), 1, linkCount, gap, gap, true);
-
-    const logChainCoordinates = (name: string, chain: Matter.Composite) => {
-        console.log(`--- ${name} Coordinates ---`);
-        chain.bodies.forEach((body, index) => {
-            console.log(`  Link ${index + 1}: x=${body.position.x.toFixed(2)}, y=${body.position.y.toFixed(2)}`);
-        });
-    };
-
-    logChainCoordinates('Top Chain', topChain);
-    logChainCoordinates('Bottom Chain', bottomChain);
-    logChainCoordinates('Left Chain', leftChain);
-    logChainCoordinates('Right Chain', rightChain);
 
     const allChains = [topChain, bottomChain, leftChain, rightChain];
     chainsRef.current = allChains;
