@@ -2,8 +2,9 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 // FIX: Import Matter.js types to resolve "Cannot find namespace 'Matter'" errors.
 import type Matter from 'matter-js';
 
-// To satisfy TypeScript since Matter is loaded from CDN
-const Matter = window.Matter;
+// To satisfy TypeScript since Matter is loaded from CDN.
+// Renamed to MatterJS to avoid conflict with the imported 'Matter' type.
+const MatterJS = window.Matter;
 
 export const Chain: React.FC = () => {
   const sceneRef = useRef<HTMLDivElement>(null);
@@ -20,7 +21,7 @@ export const Chain: React.FC = () => {
     if (!engineRef.current) return;
     const world = engineRef.current.world;
     const pairs = event.pairs;
-    const { Constraint, Composite, World } = Matter;
+    const { Constraint, Composite, World } = MatterJS;
 
     for (const pair of pairs) {
       const { bodyA, bodyB } = pair;
@@ -90,7 +91,7 @@ export const Chain: React.FC = () => {
   useEffect(() => {
     if (!sceneRef.current) return;
 
-    const { Engine, Render, Runner, Composite, Composites, Constraint, World, Bodies, Body, Mouse, MouseConstraint, Events } = Matter;
+    const { Engine, Render, Runner, Composite, Composites, Constraint, World, Bodies, Body, Mouse, MouseConstraint, Events } = MatterJS;
     
     const engine = Engine.create();
     engineRef.current = engine;
