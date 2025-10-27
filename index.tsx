@@ -209,6 +209,11 @@ const Chain: React.FC = () => {
     const leftChain = createChain(centerX - (rectWidth / 2), centerY - (verticalChainLength / 2), linkCount, true);
     const rightChain = createChain(centerX + (rectWidth / 2), centerY - (verticalChainLength / 2), linkCount, true);
 
+    console.log("Top chain initial coordinates (start):", centerX - (horizontalChainLength / 2), centerY - (rectHeight / 2));
+    console.log("Bottom chain initial coordinates (start):", centerX - (horizontalChainLength / 2), centerY + (rectHeight / 2));
+    console.log("Left chain initial coordinates (start):", centerX - (rectWidth / 2), centerY - (verticalChainLength / 2));
+    console.log("Right chain initial coordinates (start):", centerX + (rectWidth / 2), centerY - (verticalChainLength / 2));
+
     const allChains = [topChain, bottomChain, leftChain, rightChain];
     chainsRef.current = allChains;
 
