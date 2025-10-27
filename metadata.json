@@ -1,0 +1,5 @@
+{
+  "name": "Chain Puzzle",
+  "description": "An interactive mobile webapp for solving chain puzzles using the matter-js library. Users can open links in a chain to split it, and then use the opened link to connect chains back together.",
+  "requestFramePermissions": []
+}
