@@ -1,4 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+// FIX: Import Matter.js types to resolve namespace errors.
+import type Matter from 'matter-js';
 
 // To satisfy TypeScript since Matter is loaded from CDN
 const Matter = window.Matter;
@@ -60,6 +62,7 @@ export const Chain: React.FC = () => {
             return Bodies.rectangle(ix, iy, linkWidth, linkHeight, { 
                 chamfer: { radius: 10 },
                 collisionFilter: { group: group },
+                frictionAir: 0.1,
                 render: {
                     fillStyle: '#60A5FA',
                     strokeStyle: '#2563EB',

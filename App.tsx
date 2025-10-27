@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { ChainPuzzle } from './components/ChainPuzzle';
 import { Chain } from './components/Chain';
 
 function App() {
