@@ -1,6 +1,4 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-// FIX: Import Matter.js types to resolve namespace errors.
-import type Matter from 'matter-js';
 
 // To satisfy TypeScript since Matter is loaded from CDN
 const Matter = window.Matter;
@@ -12,10 +10,83 @@ export const Chain: React.FC = () => {
   const runnerRef = useRef<Matter.Runner | null>(null);
   const renderRef = useRef<Matter.Render | null>(null);
 
-  const [instruction, setInstruction] = useState('Four chains arranged in a rectangle.');
+  const [instruction, setInstruction] = useState('Drag the chains together to connect them.');
   
   // Use a ref to store all chains to easily access them in event handlers
   const chainsRef = useRef<Matter.Composite[]>([]);
+
+  const handleCollision = useCallback((event: Matter.IEventCollision<Matter.Engine>) => {
+    if (!engineRef.current) return;
+    const world = engineRef.current.world;
+    const pairs = event.pairs;
+    const { Constraint, Composite, World } = Matter;
+
+    for (const pair of pairs) {
+      const { bodyA, bodyB } = pair;
+
+      // 1. Check if both are chain links from different parent composites
+      if (bodyA.label !== 'chainLink' || bodyB.label !== 'chainLink' || bodyA.parent === bodyB.parent) {
+        continue;
+      }
+      
+      // FIX: Cast to unknown first to handle unsafe conversion from Body to Composite.
+      const compositeA = bodyA.parent as unknown as Matter.Composite;
+      // FIX: Cast to unknown first to handle unsafe conversion from Body to Composite.
+      const compositeB = bodyB.parent as unknown as Matter.Composite;
+
+      // This can happen if one composite was just merged in the same tick
+      if (!compositeA.bodies || !compositeB.bodies) {
+        continue;
+      }
+
+      // 2. Check if they are "end links" (have at most one existing constraint)
+      const allConstraints = Composite.allConstraints(world);
+      const bodyAConstraints = allConstraints.filter(c => c.bodyA === bodyA || c.bodyB === bodyA);
+      const bodyBConstraints = allConstraints.filter(c => c.bodyA === bodyB || c.bodyB === bodyB);
+
+      // A link in the middle of a chain has 2 constraints. An end link has 1.
+      // We only want to join links that are at the end of their respective chains.
+      if (bodyAConstraints.length >= 2 || bodyBConstraints.length >= 2) {
+        continue;
+      }
+
+      // 3. Create a new constraint to join them
+      const newConstraint = Constraint.create({
+        bodyA,
+        bodyB,
+        stiffness: 0.8,
+        length: 10, // A short length to pull them together
+        render: {
+          type: 'line',
+          strokeStyle: '#6EE7B7', // A bright green for new connections
+          lineWidth: 2,
+        },
+      });
+      World.add(world, newConstraint);
+
+      // 4. Merge the composites to prevent re-joining attempts between the same two chains
+      const bodiesToMove = [...compositeB.bodies];
+      bodiesToMove.forEach(body => {
+        Composite.remove(compositeB, body);
+        Composite.add(compositeA, body);
+      });
+
+      const constraintsToMove = [...compositeB.constraints];
+      constraintsToMove.forEach(constraint => {
+        Composite.remove(compositeB, constraint);
+        Composite.add(compositeA, constraint);
+      });
+
+      // 5. Remove the now-empty composite B from the world and our ref array
+      World.remove(world, compositeB);
+      chainsRef.current = chainsRef.current.filter(c => c.id !== compositeB.id);
+      
+      setInstruction('Nice! Keep connecting to form one single chain.');
+
+      // Since we modified the composites, we should break this loop to avoid stale references in this tick
+      break;
+    }
+  }, []);
     
   useEffect(() => {
     if (!sceneRef.current) return;
@@ -67,7 +138,8 @@ export const Chain: React.FC = () => {
                     fillStyle: '#60A5FA',
                     strokeStyle: '#2563EB',
                     lineWidth: 2
-                }
+                },
+                label: 'chainLink'
             });
         });
 
@@ -127,6 +199,8 @@ export const Chain: React.FC = () => {
     World.add(world, mouseConstraint);
     render.mouse = mouse;
 
+    Events.on(engine, 'collisionStart', handleCollision);
+
     Render.run(render);
 
     const handleResize = () => {
@@ -140,6 +214,9 @@ export const Chain: React.FC = () => {
     window.addEventListener('resize', handleResize);
 
     return () => {
+      if (engineRef.current) {
+        Events.off(engineRef.current, 'collisionStart', handleCollision);
+      }
       Runner.stop(runnerRef.current!);
       World.clear(engineRef.current!.world, false);
       Engine.clear(engineRef.current!);
@@ -148,7 +225,7 @@ export const Chain: React.FC = () => {
       renderRef.current!.textures = {};
       window.removeEventListener('resize', handleResize);
     };
-  }, []);
+  }, [handleCollision]);
 
   const containerStyles: React.CSSProperties = {
     width: '100%',
@@ -190,7 +267,7 @@ export const Chain: React.FC = () => {
   return (
     <div style={containerStyles}>
         <div style={overlayStyles}>
-            <h1 style={titleStyles}>Matter.js Chains</h1>
+            <h1 style={titleStyles}>Chain Puzzle</h1>
             <p style={instructionStyles}>{instruction}</p>
         </div>
         <div ref={sceneRef} style={sceneStyles} />
