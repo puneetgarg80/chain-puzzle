@@ -22,7 +22,7 @@ const Chain: React.FC = () => {
   const [instruction, setInstruction] = useState('Drag the chains together to connect them.');
   
   // Use a ref to store all chains to easily access them in event handlers
-  const chainsRef = useRef<Matter.Composite[]>([]);
+  const chainsRef = useRef<Matter.Body[]>([]);
 
   const handleCollision = useCallback((event: Matter.IEventCollision<Matter.Engine>) => {
     if (!engineRef.current) return;
@@ -165,16 +165,18 @@ const Chain: React.FC = () => {
     ]);
 
     // Helper function to create a chain
-    const createChain = (x: number, y: number, columns: number, rows: number, columnGap: number, rowGap: number, isVertical: boolean) => {
+    const createChain = (x: number, y: number, count: number, isVertical: boolean) => {
         const group = Body.nextGroup(true);
         const linkWidth = isVertical ? 20 : 50;
         const linkHeight = isVertical ? 50 : 20;
+        const xIncrement = isVertical ? 0 : linkWidth;
+        const yIncrement = isVertical ? linkHeight : 0;
 
-        const chain = Composites.stack(x, y, columns, rows, columnGap, rowGap, (ix, iy) => {
-            return Bodies.rectangle(ix, iy, linkWidth, linkHeight, { 
+        const chain = MatterJS.Body.create({
+          parts: Array.from({length: count}, (_, index) => {
+            return Bodies.rectangle(x + (index * xIncrement), y + (index * yIncrement), linkWidth, linkHeight, { 
                 chamfer: { radius: 10 },
                 collisionFilter: { group: group },
-                frictionAir: 0.1,
                 render: {
                     fillStyle: '#60A5FA',
                     strokeStyle: '#2563EB',
@@ -182,18 +184,15 @@ const Chain: React.FC = () => {
                 },
                 label: 'chainLink'
             });
-        });
-
-        Composites.chain(chain, isVertical ? 0 : 0.5, isVertical ? 0.5 : 0, isVertical ? 0 : -0.5, isVertical ? -0.5 : 0, { stiffness: 1.0, length: 1, render: { type: 'line', strokeStyle: '#BFDBFE' } });
-        
+          }),
+          isStatic: false,
+        });        
         return chain;
     };
-
+    
     const { width, height } = render.options;
     const centerX = width! / 2;
     const centerY = height! / 2;
-    const rectWidth = 400;
-    const rectHeight = 300;
 
     const linkCount = 3;
     const linkSizeHorizontal = { w: 50, h: 20 };
@@ -202,11 +201,13 @@ const Chain: React.FC = () => {
 
     const horizontalChainLength = linkCount * linkSizeHorizontal.w + (linkCount - 1) * gap;
     const verticalChainLength = linkCount * linkSizeVertical.h + (linkCount - 1) * gap;
+    const rectWidth = horizontalChainLength + 20;
+    const rectHeight = verticalChainLength + 20;
 
-    const topChain = createChain(centerX - (horizontalChainLength / 2), centerY - (rectHeight / 2), linkCount, 1, gap, gap, false);
-    const bottomChain = createChain(centerX - (horizontalChainLength / 2), centerY + (rectHeight / 2), linkCount, 1, gap, gap, false);
-    const leftChain = createChain(centerX - (rectWidth / 2) - linkSizeVertical.w, centerY - (verticalChainLength / 2), 1, linkCount, gap, gap, true);
-    const rightChain = createChain(centerX + (rectWidth / 2), centerY - (verticalChainLength / 2), 1, linkCount, gap, gap, true);
+    const topChain = createChain(centerX - (horizontalChainLength / 2), centerY - (rectHeight / 2), linkCount, false);
+    const bottomChain = createChain(centerX - (horizontalChainLength / 2), centerY + (rectHeight / 2), linkCount, false);
+    const leftChain = createChain(centerX - (rectWidth / 2) - linkSizeVertical.w, centerY - (verticalChainLength / 2), linkCount, true);
+    const rightChain = createChain(centerX + (rectWidth / 2), centerY - (verticalChainLength / 2), linkCount, true);
 
     const allChains = [topChain, bottomChain, leftChain, rightChain];
     chainsRef.current = allChains;
