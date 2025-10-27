@@ -1,7 +1,1 @@
-import type Matter from 'matter-js';
-
-declare global {
-  interface Window {
-    Matter: typeof Matter;
-  }
-}
+// This file's contents have been moved into index.tsx.
