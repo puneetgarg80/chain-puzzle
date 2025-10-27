@@ -147,13 +147,50 @@ export const Chain: React.FC = () => {
     };
   }, []);
 
+  const containerStyles: React.CSSProperties = {
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    position: 'relative'
+  };
+
+  const overlayStyles: React.CSSProperties = {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    padding: '16px',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    textAlign: 'center',
+    zIndex: 10
+  };
+
+  const titleStyles: React.CSSProperties = {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    color: '#93C5FD'
+  };
+
+  const instructionStyles: React.CSSProperties = {
+    fontSize: '1rem',
+    color: '#D1D5DB',
+    marginTop: '4px'
+  };
+
+  const sceneStyles: React.CSSProperties = {
+    width: '100%',
+    height: '100%',
+    flexGrow: 1
+  };
+
   return (
-    <div className="w-full h-full flex flex-col relative">
-        <div className="absolute top-0 left-0 right-0 p-4 bg-black bg-opacity-30 text-center z-10">
-            <h1 className="text-xl md:text-2xl font-bold text-blue-300">Matter.js Chains</h1>
-            <p className="text-sm md:text-base text-gray-300 mt-1">{instruction}</p>
+    <div style={containerStyles}>
+        <div style={overlayStyles}>
+            <h1 style={titleStyles}>Matter.js Chains</h1>
+            <p style={instructionStyles}>{instruction}</p>
         </div>
-        <div ref={sceneRef} className="w-full h-full flex-grow" />
+        <div ref={sceneRef} style={sceneStyles} />
     </div>
   );
 };
