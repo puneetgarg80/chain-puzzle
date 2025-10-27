@@ -87,21 +87,7 @@ const Chain: React.FC = () => {
       
       console.log('%c✅ Conditions met! Creating new constraint and merging chains.', 'color: #6EE7B7; font-weight: bold;');
 
-      // 5. Create a new constraint to join them
-      const newConstraint = Constraint.create({
-        bodyA,
-        bodyB,
-        stiffness: 0.8,
-        length: 10, // A short length to pull them together
-        render: {
-          type: 'line',
-          strokeStyle: '#6EE7B7', // A bright green for new connections
-          lineWidth: 2,
-        },
-      });
-      World.add(world, newConstraint);
-
-      // 6. Merge the composites to prevent re-joining attempts between the same two chains
+      // 5. Merge the composites to prevent re-joining attempts between the same two chains
       console.log(`Merging composite ${compositeB.id} into ${compositeA.id}`);
       const bodiesToMove = [...compositeB.bodies];
       bodiesToMove.forEach(body => {
@@ -114,6 +100,20 @@ const Chain: React.FC = () => {
         Composite.remove(compositeB, constraint);
         Composite.add(compositeA, constraint);
       });
+
+      // 6. Create a new constraint to join them
+      const newConstraint = Constraint.create({
+        bodyA,
+        bodyB,
+        stiffness: 0.8,
+        length: 10, // A short length to pull them together
+        render: {
+          type: 'line',
+          strokeStyle: '#6EE7B7', // A bright green for new connections
+          lineWidth: 2,
+        },
+      });
+      Composite.add(compositeA, newConstraint);
 
       // 7. Remove the now-empty composite B from the world and our ref array
       World.remove(world, compositeB);
