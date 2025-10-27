@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Chain } from './components/Chain';
+import { Chain } from './components/Chain.tsx';
 
 function App() {
   const appStyles: React.CSSProperties = {

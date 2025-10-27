@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 // FIX: Import Matter.js types to resolve "Cannot find namespace 'Matter'" errors.
 import type Matter from 'matter-js';
@@ -23,11 +24,19 @@ export const Chain: React.FC = () => {
     const pairs = event.pairs;
     const { Constraint, Composite, World } = MatterJS;
 
+    console.log(`Collision event fired with ${pairs.length} pairs.`);
+
     for (const pair of pairs) {
       const { bodyA, bodyB } = pair;
+      console.log(`Checking pair: bodyA (id: ${bodyA.id}, parent: ${bodyA.parent.id}), bodyB (id: ${bodyB.id}, parent: ${bodyB.parent.id})`);
 
       // 1. Check if both are chain links from different parent composites
       if (bodyA.label !== 'chainLink' || bodyB.label !== 'chainLink' || bodyA.parent === bodyB.parent) {
+        if (bodyA.parent === bodyB.parent) {
+            console.log('-> Skipping: Bodies belong to the same chain.');
+        } else {
+            console.log('-> Skipping: One or both bodies are not a "chainLink".');
+        }
         continue;
       }
       
@@ -36,6 +45,7 @@ export const Chain: React.FC = () => {
 
       // This can happen if one composite was just merged in the same tick
       if (!compositeA.bodies || !compositeB.bodies) {
+        console.log('-> Skipping: One of the composites is empty (already merged).');
         continue;
       }
 
@@ -43,12 +53,18 @@ export const Chain: React.FC = () => {
       const allConstraints = Composite.allConstraints(world);
       const bodyAConstraints = allConstraints.filter(c => c.bodyA === bodyA || c.bodyB === bodyA);
       const bodyBConstraints = allConstraints.filter(c => c.bodyA === bodyB || c.bodyB === bodyB);
+      console.log(`  - Body A (id: ${bodyA.id}) has ${bodyAConstraints.length} constraints.`);
+      console.log(`  - Body B (id: ${bodyB.id}) has ${bodyBConstraints.length} constraints.`);
+
 
       // A link in the middle of a chain has 2 constraints. An end link has 1.
       // We only want to join links that are at the end of their respective chains.
       if (bodyAConstraints.length >= 2 || bodyBConstraints.length >= 2) {
+        console.log('-> Skipping: One or both bodies are not end links.');
         continue;
       }
+      
+      console.log('%c✅ Conditions met! Creating new constraint and merging chains.', 'color: #6EE7B7; font-weight: bold;');
 
       // 3. Create a new constraint to join them
       const newConstraint = Constraint.create({
@@ -65,6 +81,7 @@ export const Chain: React.FC = () => {
       World.add(world, newConstraint);
 
       // 4. Merge the composites to prevent re-joining attempts between the same two chains
+      console.log(`Merging composite ${compositeB.id} into ${compositeA.id}`);
       const bodiesToMove = [...compositeB.bodies];
       bodiesToMove.forEach(body => {
         Composite.remove(compositeB, body);
@@ -79,11 +96,14 @@ export const Chain: React.FC = () => {
 
       // 5. Remove the now-empty composite B from the world and our ref array
       World.remove(world, compositeB);
+      const oldChainCount = chainsRef.current.length;
       chainsRef.current = chainsRef.current.filter(c => c.id !== compositeB.id);
+      console.log(`Removed composite ${compositeB.id}. Chain count: ${oldChainCount} -> ${chainsRef.current.length}`);
       
       setInstruction('Nice! Keep connecting to form one single chain.');
 
       // Since we modified the composites, we should break this loop to avoid stale references in this tick
+      console.log('Breaking loop after successful merge.');
       break;
     }
   }, []);
