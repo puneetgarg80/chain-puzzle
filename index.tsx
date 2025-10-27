@@ -89,23 +89,30 @@ const Chain: React.FC = () => {
 
       // 5. Merge the composites to prevent re-joining attempts between the same two chains
       console.log(`Merging composite ${compositeB.id} into ${compositeA.id}`);
-      // 1. Get component parts from source (excluding parent at index 0)
-      const partsToTransfer = compositeB.parts.slice(1);
+      const newBody = MatterJS.Body.create({
+        parts: [compositeA, compositeB],
+        isStatic: false,
+      });
+      World.add(world, newBody);
+      chainsRef.current.push(newBody);
 
-      // 2. Build the new parts array for the target body
-      let newTargetParts = [compositeA];                     // Start with the new parent
-      newTargetParts.push(...compositeA.parts.slice(1));    // Add target's existing parts
-      newTargetParts.push(...partsToTransfer);              // Add source's parts
+      // // 1. Get component parts from source (excluding parent at index 0)
+      // const partsToTransfer = compositeB.parts.slice(1);
 
-      // 3. Apply the new parts to the target body
-      MatterJS.Body.setParts(compositeB, [compositeB]);
-      MatterJS.Body.setParts(compositeA, newTargetParts);
-      MatterJS.Body.setStatic(compositeA, false);
+      // // 2. Build the new parts array for the target body
+      // let newTargetParts = [compositeA];                     // Start with the new parent
+      // newTargetParts.push(...compositeA.parts.slice(1));    // Add target's existing parts
+      // newTargetParts.push(...partsToTransfer);              // Add source's parts
+
+      // // 3. Apply the new parts to the target body
+      // MatterJS.Body.setParts(compositeB, [compositeB]);
+      // MatterJS.Body.setParts(compositeA, newTargetParts);
+      // MatterJS.Body.setStatic(compositeA, false);
 
       // 4. Remove the now-empty composite B from the world and our ref array
-      World.remove(world, compositeB);
+      // World.remove(world, compositeB);
       const oldChainCount = chainsRef.current.length;
-      chainsRef.current = chainsRef.current.filter(c => c.id !== compositeB.id);
+      chainsRef.current = chainsRef.current.filter(c => c.id !== compositeB.id && c.id != compositeA.id);
       console.log(`Removed composite ${compositeB.id}. Chain count: ${oldChainCount} -> ${chainsRef.current.length}`);
       
       setInstruction('Nice! Keep connecting to form one single chain.');
