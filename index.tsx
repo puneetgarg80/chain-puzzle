@@ -89,30 +89,18 @@ const Chain: React.FC = () => {
 
       // 5. Merge the composites to prevent re-joining attempts between the same two chains
       console.log(`Merging composite ${compositeB.id} into ${compositeA.id}`);
-      compositeA.parts.concat(compositeB.parts);
-      // compositeB.parts.length = 0;
+      // 1. Get component parts from source (excluding parent at index 0)
+      const partsToTransfer = compositeB.parts.slice(1);
 
-      // const constraintsToMove = [...compositeB.constraints];
-      // constraintsToMove.forEach(constraint => {
-      //   Composite.remove(compositeB, constraint);
-      //   Composite.add(compositeA, constraint);
-      // });
+      // 2. Build the new parts array for the target body
+      let newTargetParts = [compositeA];                     // Start with the new parent
+      newTargetParts.push(...compositeA.parts.slice(1));    // Add target's existing parts
+      newTargetParts.push(...partsToTransfer);              // Add source's parts
 
-      // 6. Create a new constraint to join them
-      // const newConstraint = Constraint.create({
-      //   bodyA,
-      //   bodyB,
-      //   stiffness: 0.8,
-      //   length: 10, // A short length to pull them together
-      //   render: {
-      //     type: 'line',
-      //     strokeStyle: '#6EE7B7', // A bright green for new connections
-      //     lineWidth: 2,
-      //   },
-      // });
-      // Composite.add(compositeA, newConstraint);
+      // 3. Apply the new parts to the target body
+      MatterJS.Body.setParts(compositeA, newTargetParts);
 
-      // 7. Remove the now-empty composite B from the world and our ref array
+      // 4. Remove the now-empty composite B from the world and our ref array
       World.remove(world, compositeB);
       const oldChainCount = chainsRef.current.length;
       chainsRef.current = chainsRef.current.filter(c => c.id !== compositeB.id);
@@ -198,8 +186,8 @@ const Chain: React.FC = () => {
 
     const horizontalChainLength = linkCount * linkSizeHorizontal.w + (linkCount - 1) * gap;
     const verticalChainLength = linkCount * linkSizeVertical.h + (linkCount - 1) * gap;
-    const rectWidth = horizontalChainLength + 50;
-    const rectHeight = verticalChainLength + 50;
+    const rectWidth = horizontalChainLength + 80;
+    const rectHeight = verticalChainLength + 80;
     
     const topChain = createChain(centerX - (horizontalChainLength / 2), centerY - (rectHeight / 2), linkCount, false);
     const bottomChain = createChain(centerX - (horizontalChainLength / 2), centerY + (rectHeight / 2), linkCount, false);
