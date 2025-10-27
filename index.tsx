@@ -45,7 +45,7 @@ const Chain: React.FC = () => {
       // 2. Find the parent composite for each body by searching through our tracked chains.
       // This is necessary because body.parent does not point to the composite container.
       const findParentComposite = (body: Matter.Body) => 
-          chainsRef.current.find(c => Composite.allBodies(c).some(b => b.id === body.id));
+          chainsRef.current.find(c =>  c.parts.some(b => b.id === body.id));
 
       const compositeA = findParentComposite(bodyA);
       const compositeB = findParentComposite(bodyB);
@@ -65,7 +65,7 @@ const Chain: React.FC = () => {
       }
 
       // This can happen if one composite was just merged in the same tick
-      if (!compositeA.bodies || !compositeB.bodies) {
+      if (!compositeA.parts || !compositeB.parts) {
         console.log('-> Skipping: One of the composites is empty (already merged).');
         continue;
       }
@@ -89,31 +89,28 @@ const Chain: React.FC = () => {
 
       // 5. Merge the composites to prevent re-joining attempts between the same two chains
       console.log(`Merging composite ${compositeB.id} into ${compositeA.id}`);
-      const bodiesToMove = [...compositeB.bodies];
-      bodiesToMove.forEach(body => {
-        Composite.remove(compositeB, body);
-        Composite.add(compositeA, body);
-      });
+      compositeA.parts.concat(compositeB.parts);
+      // compositeB.parts.length = 0;
 
-      const constraintsToMove = [...compositeB.constraints];
-      constraintsToMove.forEach(constraint => {
-        Composite.remove(compositeB, constraint);
-        Composite.add(compositeA, constraint);
-      });
+      // const constraintsToMove = [...compositeB.constraints];
+      // constraintsToMove.forEach(constraint => {
+      //   Composite.remove(compositeB, constraint);
+      //   Composite.add(compositeA, constraint);
+      // });
 
       // 6. Create a new constraint to join them
-      const newConstraint = Constraint.create({
-        bodyA,
-        bodyB,
-        stiffness: 0.8,
-        length: 10, // A short length to pull them together
-        render: {
-          type: 'line',
-          strokeStyle: '#6EE7B7', // A bright green for new connections
-          lineWidth: 2,
-        },
-      });
-      Composite.add(compositeA, newConstraint);
+      // const newConstraint = Constraint.create({
+      //   bodyA,
+      //   bodyB,
+      //   stiffness: 0.8,
+      //   length: 10, // A short length to pull them together
+      //   render: {
+      //     type: 'line',
+      //     strokeStyle: '#6EE7B7', // A bright green for new connections
+      //     lineWidth: 2,
+      //   },
+      // });
+      // Composite.add(compositeA, newConstraint);
 
       // 7. Remove the now-empty composite B from the world and our ref array
       World.remove(world, compositeB);
@@ -203,12 +200,15 @@ const Chain: React.FC = () => {
     const verticalChainLength = linkCount * linkSizeVertical.h + (linkCount - 1) * gap;
     const rectWidth = horizontalChainLength + 50;
     const rectHeight = verticalChainLength + 50;
-
+    
     const topChain = createChain(centerX - (horizontalChainLength / 2), centerY - (rectHeight / 2), linkCount, false);
     const bottomChain = createChain(centerX - (horizontalChainLength / 2), centerY + (rectHeight / 2), linkCount, false);
     const leftChain = createChain(centerX - (rectWidth / 2), centerY - (verticalChainLength / 2), linkCount, true);
     const rightChain = createChain(centerX + (rectWidth / 2), centerY - (verticalChainLength / 2), linkCount, true);
 
+
+    console.log("CentreX, CentreY", centerX, centerY);
+    console.log("horizontalChainLength, verticalChainLength", horizontalChainLength, verticalChainLength);
     console.log("Top chain initial coordinates (start):", centerX - (horizontalChainLength / 2), centerY - (rectHeight / 2));
     console.log("Bottom chain initial coordinates (start):", centerX - (horizontalChainLength / 2), centerY + (rectHeight / 2));
     console.log("Left chain initial coordinates (start):", centerX - (rectWidth / 2), centerY - (verticalChainLength / 2));
